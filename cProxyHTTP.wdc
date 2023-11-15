@@ -1,0 +1,327 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : CProxyHTTP
+ major_version : 28
+ minor_version : 0
+ type : 4
+ description : ""
+ subtype : 0
+class :
+ identifier : 0x17f2305c0013fff4
+ internal_properties : CAAAAAgAAAB2/vstTMCJbS/hlxjFxirSqKvCUuv8YxgpWyl7S3iA
+ code_elements :
+  type_code : 10
+  p_codes :
+   -
+     internal_properties : CAAAAAgAAAApCzx331yJxlHa93jMx5a/Mete/EbXt4sZEAtGmMXpeUtm2PjV8nWxUomfpsyyW3whXEgExnrBFRU8v/CNo1+DqqKj1vbrg9V/MRmHi52hMdCa4/qfTvXkb0dsp+wcrF++mp50E/3YbGJ0lc4=
+     code : |1-
+      //
+      // Classe de gestion d'un proxy HTTP
+      //
+      CProxyHTTP est une classe
+      	hérite de iProxy	
+      	
+      	protege
+      		m_bAutoriseSSL		est un booléen				// Flag indiquant si les connexions SSL sont autorisées
+      	
+      Fin
+     type : 131072
+  procedures :
+   -
+     name : Constructeur
+     procedure_id : 1725494778932822004
+     type_code : 27
+     code : |1-
+      Procédure Constructeur()
+      
+      	// Initialise le proxy
+      	Constructeur iProxy()
+      
+      	// Port par défaut
+      	Port = 8080
+     type : 589824
+   -
+     name : Destructeur
+     procedure_id : 1725494778932887540
+     type_code : 28
+     code : |1-
+      Procédure Destructeur()
+     type : 655360
+   -
+     name : ProxyDialogue
+     internal_properties : CAAAAAgAAABSfRckWCDN7nPUFSyubnnGOSi9MUW3UmQ79uXwrdOQZoBKegA7t8u6Do96zZg+Q3sNSoJWNBpdEEzlfJAw4qwwE95jmZb4kkLNEno/eyB5P17cmglmiD84h3qCqyR4fMVxxEaNkVcLoEFKqJSfyCOiqTtmHqtrX5xUCxe2zlqTpfZ+76yKRnjBs2KhE1vxHGt3LBGZQ3YlS4/AOuNuVAz6TMTfqA==
+     procedure_id : 1725495401703159794
+     type_code : 12
+     code : |1-
+      // Résumé : Méthode de dialogue avec les clients
+      // Syntaxe :
+      //ProxyDialogue (<sSocketClient> est chaîne)
+      //
+      // Paramètres :
+      //	sSocketClient (chaîne) : Nom de la socket cliente
+      // Valeur de retour :
+      // 	Aucune
+      //
+      // Traitement automatique des exceptions :   exécuter le bloc de code CAS EXCEPTION:
+      //
+      Procédure protegee virtuelle ProxyDialogue(local sSocketClient est une chaine)
+      
+      	bufRequête est un buffer
+      	
+      	// Pas de marqueur de fin
+      	SocketChangeModeTransmission(sSocketClient, SocketSansMarqueurFin)
+      
+      	tantque Vrai
+      		
+      		// On a reçu le signal de fin
+      		si m_bArrêt alors sortir
+      		
+      		// Lecture
+      		bufRequête = ProxyLit(sSocketClient)
+      		si ErreurDétectée alors sortir
+      		
+      		// Si on a reçu un message
+      		si bufRequête <> "" alors
+      			
+      			// Traite la requête
+      			si ProxyRequête(sSocketClient, bufRequête) alors
+      				// Sort et coupe la connexion
+      				sortir
+      			fin
+      		FIN
+      		
+      		// Attend un signal de sortie
+      		SI SignalAttend(m_SignalFin, 1) ALORS
+      			// On a reçu le signal de fin
+      			SORTIR
+      		FIN	
+      		
+      	FIN
+      	
+      CAS EXCEPTION:
+      	// Fin du client
+      	retour
+      	
+      fin:
+      	JournalAjoute("Fin du client " + SocketClientInfo(sSocketClient,SocketAdresse))
+      	
+      	// Fermeture de la socket	
+      	ProxyFermeSocket(sSocketClient)
+     type : 458752
+   -
+     name : ProxyRequête
+     internal_properties : CAAAAAgAAABa5T55L48Q7BPM93hRnvC3mMoL7TXhT6SZ9QJeNJMnoh/62e6JtIPjQI9vCE3bqCwbSMopgGK8cslQUPWYZ1ajXij8I0l8/1ylzzWAD0tU0Od4ZDS/RJonBRdSGUIJiPwwBQcln2VyPQxT6ij0i/u6aGcBrEt1F5SOTPlnPChNb+ihm2m0Nhk9iXY/WnVfHj9RnfKwHvLj8N7WmAW+T6M8IikrMzU9p4mfzD/TtxO39IZ1pn/ZZgejwpDbc/QXgyQ9QvoP/b/8bX948LYZVWFIH2hfgu74Pbxisck6YFj0/r1mcaRJCBCpgbWQuMdDNXKIcQO3DHciUKuB4p3NlqXZMERoDEvMRzLPAn8lOPY0SFu40q/T2zqtT/aAwTU=
+     procedure_id : 1725498846267208429
+     type_code : 12
+     code : |1-
+      // Résumé : Traite une requête en provenance d'une socket
+      // Syntaxe :
+      //[ <Résultat> = ] ProxyRequête (<sSocket> est chaîne, <bufRequête> est buffer)
+      //
+      // Paramètres :
+      //	sSocket (chaîne) : Nom de la socket
+      //	bufRequête (buffer) : Requête à traiter
+      // Valeur de retour :
+      // 	booléen : // 	Aucune
+      //// Traitement automatique des exceptions :   exécuter le bloc de code CAS EXCEPTION:
+      //
+      
+      Procédure protegee virtuelle ProxyRequête(local sSocket est une chaine, local bufRequête est un buffer)
+      
+      	bConnexionSSL 		est un booléen
+      	sAdresseDistante	est une chaine
+      	sIP					est une chaine
+      	nPort				est un entier
+      	sSocketFwd			est une chaine
+      	bConnecté			est un booléen
+      	sURL				est une chaine
+      	bufRéponse			est un buffer
+      	
+      	// Récupère la destination
+      	sAdresseDistante = ExtraitChaîne(ExtraitChaîne(Minuscule(bufRequête), 2, "host: "), 1, RC)
+      	
+      	// Détermine le numéro de port
+      	nPort = ExtraitChaîne(sAdresseDistante, 2, ":")
+      	
+      	SI nPort = 0 ALORS
+      		// Extrait le numéro de port depuis la requête
+      		nPort = ExtraitChaîne(ExtraitChaîne(ExtraitChaîne(bufRequête, 1, RC), 2, ":"), 1, " ")
+      	FIN	
+      	
+      	// Correction du numéro de port si nécessaire
+      	nPort = nPort <= 0 ? 80 SINON nPort
+      	
+      	// Détermine s'il s'agit d'une connexion SSL
+      	SI nPort = 443 ALORS bConnexionSSL = Vrai
+      	
+      	// Si il s'agit d'une connexion SSL et que SSL n'est pas actif
+      	si bConnexionSSL _et_ m_bAutoriseSSL = faux alors
+      		// Message d'erreur
+      		SocketEcrit(sSocket, [
+      		HTTP/1.0 403 Forbidden
+      		Connection: close
+      		
+      		
+      		
+      		])
+      				
+      	sinon
+      		
+      		// Détermine l'IP
+      		sAdresseDistante = ExtraitChaîne(sAdresseDistante, 1, ":")
+      		sIP	= NetAdresseIP(sAdresseDistante)
+      		
+      		// Crée un nom de socket
+      		sSocketFwd = "proxy_" + sSocket
+      		
+      		SI bConnexionSSL ALORS
+      			// Connexion SSL (10 secondes de timeout)
+      			bConnecté = SocketConnecteSSL(sSocketFwd, nPort, sIP, ProtocoleTLS1, 10000)	
+      		SINON	
+      			// Connexion classique (10 secondes de timeout)
+      			bConnecté = SocketConnecte(sSocketFwd, nPort, sIP, 10000)
+      		FIN
+      		
+      		SI bConnecté ALORS
+      			
+      			// Aucun marqueur de fin, on lit tant qu'il y a des données à lire
+      			SocketChangeModeTransmission(sSocketFwd, SocketSansMarqueurFin)
+      			
+      			// Si c'est une requête GET
+      			SI Majuscule(SansEspace(bufRequête)) [= "GET" ALORS
+      				
+      				// Extrait l'URL demandée
+      				sURL = SansEspace(bufRequête[[4 A Position(bufRequête, "HTTP/") - 1]])
+      				sURL = RécupèrePage(sURL)
+      				
+      				// Corrige la requête HTTP
+      				bufRequête = "GET " + sURL + " " + bufRequête[[Position(bufRequête, "HTTP/") A]]
+      				
+      			FIN
+      			
+      			JournalAjoute("Nouvelle requête pour " + SocketClientInfo(sSocket,SocketAdresse) + " :", extraitchaine(bufRequête, 1, rc))
+      			
+      			// Transmet la requête au serveur
+      			SI SocketEcrit(sSocketFwd, bufRequête) ALORS
+      				
+      				// Lecture des données
+      				bufRéponse = ProxyLit(sSocketFwd)
+      				
+      				// Ferme la socket avec le serveur
+      				ProxyFermeSocket(sSocketFwd)
+      				
+      				// Si on a reçu des données
+      				SI bufRéponse <> "" ALORS
+      					
+      					// Transfère la réponse au client
+      					SocketEcrit(sSocket, bufRéponse)
+      					
+      				FIN
+      				
+      			SINON
+      				
+      				// Ferme la socket avec le serveur
+      				ProxyFermeSocket(sSocketFwd)
+      				
+      				// Message d'erreur
+      				SocketEcrit(sSocket, [
+      				HTTP/1.0 500 Service unavailable
+      				Connection: close
+      				
+      				
+      				
+      				])
+      				
+      			FIN
+      			
+      		SINON
+      			
+      			// Message d'erreur
+      			SocketEcrit(sSocket, [
+      			HTTP/1.0 500 Service unavailable
+      			Connection: close
+      			
+      			
+      			
+      			])
+      		FIN
+      	FIN
+      	
+      	
+      CAS EXCEPTION:
+      
+      	// Ferme la socket avec le serveur
+      	ProxyFermeSocket(sSocketFwd)
+      
+      fin:	
+      
+      	// Vérifie si on doit fermer la connexion
+      	si position(bufRequête, "Proxy-Connection: Keep-Alive") <= 0 alors
+      
+      		// On doit fermer la connexion avec le client		
+      		renvoyer Vrai
+      	
+      	sinon
+      		
+      		// On ne doit pas fermer la connexion
+      		renvoyer faux
+      	fin
+     type : 458752
+   -
+     name : RécupèrePage
+     procedure_id : 1725501680945694325
+     type_code : 12
+     code : |1-
+      // Résumé : Renvoie la page demandée
+      // Syntaxe :
+      //[ <Résultat> = ] RécupèrePage (<sURL> est chaîne)
+      //
+      // Paramètres :
+      //	sURL (chaîne) : URL à analyser
+      // Valeur de retour :
+      // 	chaîne :   Page demandée
+      //
+      Procédure globale privee RécupèrePage(local sURL est une chaine)
+      
+      	sFichier est une chaine
+      	
+      	si ChaîneOccurrence(sURL, "/") >= 3 ALORS
+      		// Supprime le nom d'hôte
+      		sFichier = sURL[[PositionOccurrence(sURL, "/", 3) a]]
+      	sinon
+      		// Racine
+      		sFichier = "/"
+      	FIN
+      	
+      renvoyer sFichier
+     type : 458752
+  properties :
+   -
+     name : SSLActif
+     identifier : 0x1afd585e00ec36df
+     type_code : 103
+     p_codes :
+      -
+        code : |1-
+         PROCEDURE SSLActif()
+         renvoyer m_bAutoriseSSL
+        type : 1966080
+      -
+        code : |1-
+         PROCEDURE SSLActif(local bSSL est un booléen)
+         
+         	m_bAutoriseSSL = bSSL
+        type : 2031616
+     template_refs : []
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : Classe1
+resources :
+ string_res :
+  identifier : 0x10d9981806c927f1
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ

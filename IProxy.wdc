@@ -1,0 +1,443 @@
+#To edit and compare internal_properties, use WINDEV integrated tools.
+#Internal properties refer to the properties of controls in windows, reports, etc.
+info :
+ name : IProxy
+ major_version : 28
+ minor_version : 0
+ type : 4
+ description : ""
+ subtype : 0
+class :
+ identifier : 0x17c0433301e3878d
+ internal_properties : CAAAAAgAAAB2/vstTMCJbS/hlxjFxirSqKvCUuv8YxgpWyl7S3iA
+ code_elements :
+  type_code : 10
+  p_codes :
+   -
+     internal_properties : CAAAAAgAAAAQOfF4B1Dw1SNyWc4FzH6DkK5L1TMQ38BmYEo7PTBa5aqwLRKKZ7b/rWXNg8gsujlfXNDFwp8ubg4xC7/xAlDt3L48z8+hKffh187QzeJ36No4HidWcEajY3PCOz0Sm5AU98Mngsz4nUcLU9kFwTW4jcbv9CNMHt6PZ+oyEwM+sofsMeZDDVLreK+HLlm9h8VU
+     code : |1-
+      //
+      // Classe de base permettant de gérer un proxy
+      //
+      IProxy est une classe, abstraite
+      	
+      	protege
+      		m_bEnExécution	est un booléen					// Flag indiquant si le proxy est en cours d'exécution ou non
+      		m_nPort			est un entier						// Port du proxy
+      		m_Thread			est une TâcheParallèle				// Tâche associée au proxy
+      		m_sSocketPrxy		est une chaine					// Socket du proxy
+      		m_SignalFin		est un SignalAutomatique			// Signal de sortie du proxy
+      		m_bJournal		est un booléen					// Flag indiquant si on doit générer un journal des connexions
+      		m_sRepJournal		est une chaine					// Répertoire d'enregistrement du journal
+      		m_bArrêt			est un booléen <section critique>	// Flag indiquant un arrêt
+      Fin
+      
+      constant
+      	MAX_TAILLE_PAQUET	= 4096
+      FIN
+     type : 131072
+  procedures :
+   -
+     name : Constructeur
+     internal_properties : CAAAAAgAAADLF8XB1iE2UeShE0LLN3wkDsEF82qhcRApHHIjss9HHDo3m1vn/l263J4tU+1Loq2Pfv5gR/S3gUKS+w3/AL0svGQqh9nij1bLuO8vcVd80/hpbjEANu2eCSC4f4bmGkdx7G7lS+23zO3OBmq12p0YNedKHLdtMKtB8FTdOEAm4w52l0jCPnA562YD8506Y2qCOcWw
+     procedure_id : 1711441744755197837
+     type_code : 27
+     code : |1-
+      Procédure Constructeur()
+      
+      	// Nom du thread et de la socket du proxy
+      	m_sSocketPrxy	= objet..Classe + "_ProxySocket" + ConstruitEntier(Instance, DonneIdentifiant)
+      	
+      	// Répertoire par défaut pour le journal
+      	RépertoireJournal = SysRep(srAppDataLocal) + ["\"] + "WD Proxy HTTP\Journal"
+     type : 589824
+   -
+     name : Destructeur
+     procedure_id : 1711441744755263373
+     type_code : 28
+     code : |1-
+      Procédure Destructeur()
+      
+      	// Met fin au proxy
+      	Arrête()
+     type : 655360
+   -
+     name : Démarre
+     internal_properties : CAAAAAgAAABwHzXBJiMZHsNEBZxevunWSbhtfc0P8oQrrsX4DSO43jAKosDLx7OC9s+i7bCmkyvFAkIeTPKd0HwdPNjQgqQoI17LORb4utq1woI/Mxh5P1Y0nrWKrGsc6yaGt/BEWCElGBpJ1ZtXpCUm7EBrFE9OzR+6Cn9fW2CIpztCulbvEdoic8iO+iRl504Vz4fdWHfn3AFpM8Z1299QSpOeKEUBcuL9ig==
+     procedure_id : 1711441744755328909
+     type_code : 12
+     starred : true
+     code : |1-
+      // Résumé : Démarre le proxy
+      // Syntaxe :
+      //[ <Résultat> = ] Démarre ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	booléen :  Vrai si le proxy a pu être démarré, Faux sinon
+      //
+      // Traitement automatique des exceptions :   exécuter le bloc de code CAS EXCEPTION:
+      //
+      Procédure Démarre()
+      
+      	// Le port doit être établi
+      	si m_nport = 0 alors renvoyer faux	
+      	m_bArrêt = faux
+      	
+      	// Création de la socket serveur
+      	JournalAjoute("Création de la socket sur le port " + m_nport)
+      	si SocketCrée(m_sSocketPrxy, m_nport) ALORS
+      		
+      		// Exécute la méthode de gestion des connexions
+      		m_thread = TâcheParallèleExécute(ProxyEcoute, ())
+      						
+      		// Le proxy est démarré
+      		renvoyer vrai
+      	FIN
+      	
+      renvoyer faux
+      
+      CAS EXCEPTION:
+      	RENVOYER Faux
+     type : 458752
+   -
+     name : ProxyEcoute
+     internal_properties : CAAAAAgAAAAPDHsooUKar/nmZDAKqkUWzPr8v5XEHJdNhyr1fXBbb/xieVDQjJqCC48FK03cpEMVYaWlvNnlBmwAjwhxCydoH5xhtb04BrOlKwnE1hS2efdUIHxksQudIGdKleh8Lgs1WM51ez0F0jc0+lQdgllESYM6zuWBa3DIq5XQ1CQ5fdxGGYQs6CPqAUxRgAvR4tZq7lasLkogan6r1vteEHzhQTWI7U3Cx2/xLycAAD2Bcbpl4tU=
+     procedure_id : 1711441744755394445
+     type_code : 12
+     starred : true
+     code : |1-
+      // Résumé : Méthode de gestion des connexions
+      // Syntaxe :
+      //ProxyEcoute ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	Aucune
+      //// Traitement automatique des exceptions :   exécuter le bloc de code CAS EXCEPTION:
+      //
+      
+      Procédure protegee  ProxyEcoute()
+      
+      	sSocketClient est une chaine
+      	
+      	SectionCritiqueDébut("__bEnExecution")
+      	m_bEnExécution = vrai
+      	SectionCritiqueFin("__bEnExecution")
+      
+      	JournalAjoute("Attente de connexion...")
+      
+      	tantque Vrai
+      		
+      		// Arrêt demandé
+      		si m_bArrêt = vrai alors sortir
+      		
+      		// Attend une connexion pendant 1 seconde
+      		si SocketAttendConnexion(m_sSocketPrxy, 100) ALORS
+      			
+      			// Accepte la connexion
+      			sSocketClient = SocketAccepte(m_sSocketPrxy)
+      			
+      			// Si le nom de la socket est valide
+      			si sSocketClient <> "" alors
+      			
+      				// Construit le nom du thread associé à cette connexion
+      				JournalAjoute("Nouvelle connexion :", "IP : " + SocketClientInfo(sSocketClient, socketadresse), "Port : " + SocketClientInfo(sSocketClient, SocketPort))
+      
+      				// Exécute la méthode de dialogue avec le client
+      				TâcheParallèleExécute(ProxyDialogue, (sSocketClient))
+      			fin
+      		FIN
+      		
+      		// Attend un signal de sortie
+      		si SignalAttend(m_SignalFin, 100) = 1 ALORS
+      			// On a reçu le signal de fin
+      			sortir
+      		FIN
+      		
+      	FIN
+      	
+      CAS EXCEPTION:
+      	// On ferme le proxy
+      	retour
+      	
+      fin:	
+      
+      	JournalAjoute("Arrêt du proxy")
+      
+      	// Fin de l'exécution
+      	SectionCritiqueDébut("__bEnExecution")
+      	m_bEnExécution = faux
+      	SectionCritiqueFin("__bEnExecution")
+      
+      	// Fermeture de la socket	
+      	ProxyFermeSocket(m_sSocketPrxy)
+     type : 458752
+   -
+     name : ProxyDialogue
+     internal_properties : CAAAAAgAAAAOtBjVDd06JbFiSwIIlkjfxl1UwswCfVjvDOtpof8bUFBeF1cuyPW6pZ24nYYdxLOC1BVMWcD+e7hsL5CLcxS9CtUA1FlWFjnWBtz7+frQy/uUy0Jtez2ODDpZhojPAaJ/n5j22dsKERCrEmoXS54+q7srf00U8QbzoL+/PuMDCb7aGjYLxsKfPouFEk53CHv9Btq/Gr5TZdj/zKuZLMjoA4uxvXpSe/hXm25Ac35aypIygHGaOWCuN3ro0bcARoC94P0CleqYZBydIJdMqdFMJ/kjSaEfA23jRK9zsA2yyDPaLAHv6A==
+     procedure_id : 1711441744755459981
+     type_code : 12
+     starred : true
+     code : |1-
+      // Résumé : Méthode de dialogue avec les clients
+      // Syntaxe :
+      //ProxyDialogue (<sSocketClient> est chaîne)
+      //
+      // Paramètres :
+      //	sSocketClient (chaîne) : Nom de la socket cliente
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure protegee virtuelle ProxyDialogue(local sSocketClient est une chaine)
+     type : 458752
+   -
+     name : Arrête
+     internal_properties : CAAAAAgAAABNjSJJDsDl/0TJjTJHp+RMomWFGeAXB7IxbLjjNg/PbE7T/1VJGNsAMMrfu6HPMg1j8io6CbbBQ06ORaV7XAWEbJzG6bOkObirmNYGclbtQs+Y0bSpTQS/XpEXJqe9s95oG0XsMEDyiT4DaS1qHbbHxC5J+9QI4xymvadYXTMr5jmBrh8/uePigLeOdiqyWDd5Iz82
+     procedure_id : 1711441744755525517
+     type_code : 12
+     starred : true
+     code : |1-
+      // Résumé : Stoppe le proxy
+      // Syntaxe :
+      //Arrête ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure Arrête()
+      
+      	// Si le proxy est en cours d'exécution
+      	si m_bEnExécution alors
+      
+      		// Envoie le signal de sortie
+      		m_bArrêt = vrai
+      		SignalOuvre(m_SignalFin)
+      		
+      		// Arrêt du thread
+      		TâcheParallèleDemandeAnnulation(m_Thread)
+      	fin
+     type : 458752
+   -
+     name : ProxyLit
+     internal_properties : CAAAAAgAAACDeRE6wWkaAOmP43MFQJU85bzJ8LNaNHax4pfRTi/oGPzWeoZdA+w6SDi8E8+jry0w657JvJIKw8iW2+va5T26LeRGGK4AZXx420AUa4TBpTvqy5AO9QPBmH5M9blgAYXev4LFAPVMB0rmdPhw4EQEWJT+4AgVpK/lu48E7aJ6+XkFYyYhgBThzgpT7Mjzfgys05Ep2s4O3neHM69N0NlC2pCKK4IWdL9zALAlYLyS8T/ccA==
+     procedure_id : 1711441744755591053
+     type_code : 12
+     code : |1-
+      // Résumé : Effectue une lecture sur la socket par paquet
+      // Syntaxe :
+      //[ <Résultat> = ] ProxyLit (<sSocket> est chaîne)
+      //
+      // Paramètres :
+      //	sSocket (chaîne) : Nom de la socket
+      // Valeur de retour :
+      // 	buffer : Données lues
+      //
+      // Traitement automatique des exceptions :   exécuter le bloc de code CAS EXCEPTION:
+      //
+      Procédure protegee globale ProxyLit(local sSocket est une chaine)
+      
+      	bufDonnées est un buffer
+      	bufLecture est un buffer
+      	
+      	// Effectue une première lecture
+      	bufLecture = SocketLit(sSocket, faux, 1000, MAX_TAILLE_PAQUET)
+      	
+      	// Conserve les données
+      	bufDonnées = bufLecture
+      	
+      	// Tant qu'il y a des données à lire
+      	tantque taille(bufLecture) > 0
+      		
+      		// Effectue une autre lecture
+      		bufLecture = SocketLit(sSocket, Faux, 1000, MAX_TAILLE_PAQUET)
+      		
+      		// Conserve les données
+      		bufDonnées += bufLecture
+      	FIN
+      
+      renvoyer bufDonnées
+      
+      CAS EXCEPTION:
+      	bufDonnées = ""
+      	renvoyer bufDonnées
+     type : 458752
+   -
+     name : ProxyFermeSocket
+     internal_properties : CAAAAAgAAACW7U9xgTrjdbnsQYSntWN0bP7yEGQM30v+a/fsY0jmrUxLme9D+T+6hg+YpnhiaEhQl+0yNpQE9mmykFuAE7Jhx8yLoMe3XRDbIz+t5YoPDGMCa2N8E7wkDpOxIJcaNOOQ5i4yK3AQFPF1ALioUVQuJoNoHe+Ab4OVyyr3BVkR/khrTFQlVHErugjK2a1FyW1OUofYv+WIqXwu6+t5e9Vqro0qRid7NBpgp2a9fimmqc1YqAnrtKyUwsq/y2kbYQ==
+     procedure_id : 1711441744755656589
+     type_code : 12
+     code : |1-
+      // Résumé : Ferme une socket
+      // Syntaxe :
+      //ProxyFermeSocket (<sSocket> est chaîne)
+      //
+      // Paramètres :
+      //	sSocket (chaîne) : Nom de la socket
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure protegee globale ProxyFermeSocket(local sSocket est une chaine)
+      
+      	// Si la socket existe
+      	si SocketExiste(sSocket) ALORS
+      		
+      		// Ferme la socket
+      		SocketFerme(sSocket)
+      	FIN
+     type : 458752
+   -
+     name : ProxyRequête
+     internal_properties : CAAAAAgAAAANnoKMQurqckPNSyliNgVS3Ba1XAvwtUfTjBvCTp5a3Rde+tLTyFQSsQW5PgJiKtaqN8ZGAfhN/EQ22orcRs4vM+Ww/oBufYud8LF+iUJFDbU3PhboYKKa4zVgwdbj0qLQqG8p8Wfc4gs1tkIs9DyOMFxPXiruWWC8obWEQlww6GaLEa8z/aWaJGVktvzOvNtA0kH2YgSTAVMO2Gez0mZBnxFlBTczEEevBpfj6/mlckgUOSSHpaaHa/KEcVXdzMhsDHpzUSG3FZOLgzLpBD2vQqJp7RKC1+eMCOMf5I6D91U0qw6go1+hj4BXm2k+LGGZlvzQvWQXL3czJ/ekBDvd8IZGt7/8Ev8P9Nfdfhk=
+     procedure_id : 1711441744755722125
+     type_code : 12
+     code : |1-
+      // Résumé : Traite une requête en provenance d'une socket
+      // Syntaxe :
+      //ProxyRequête (<sSocket> est chaîne, <bufRequête> est buffer)
+      //
+      // Paramètres :
+      //	sSocket (chaîne) : Nom de la socket
+      //	bufRequête (buffer) : Requête à traiter
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure protegee virtuelle ProxyRequête(local sSocket est une chaine, local bufRequête est un buffer)
+     type : 458752
+   -
+     name : JournalAjoute
+     procedure_id : 1711441744755787661
+     type_code : 12
+     code : |1-
+      // Résumé : Ajoute un événement au journal
+      // Syntaxe :
+      //JournalAjoute ()
+      //
+      // Paramètres :
+      //	Aucun
+      // Valeur de retour :
+      // 	Aucune
+      //
+      Procédure protegee JournalAjoute(*)
+      
+      	// Si le journal n'est pas actif
+      	si m_bJournal = faux alors retour
+      	
+      	dDate 		est une date 		= datedujour
+      	sFichier	est une chaine		= m_sRepJournal + ["\"] + dDate + ".log"
+      	nHandle		est un entier
+      	
+      	// Crée le journal s'il n'existe pas
+      	si fFichierExiste(sFichier) = faux alors
+      		// Crée un journal
+      		fSauveTexte(sFichier, "")
+      	FIN
+      	
+      	// Ouvre le journal
+      	nHandle = fouvre(sFichier, foAjout)
+      	si nHandle <> -1 alors
+      	
+      		// Complète le journal
+      		pour i = 1 _a_ MesParamètres..NbReçus
+      			fEcritLigne(nHandle, datedujour + "-" + maintenant + " : " + (i > 1 ? tab sinon "") + MesParamètres[i])
+      		FIN
+      	
+      		// Ferme le fichier
+      		fferme(nHandle)
+      	fin
+      	
+      	
+     type : 458752
+  properties :
+   -
+     name : Port
+     identifier : 0x17c0433301e4878d
+     type_code : 103
+     p_codes :
+      -
+        code : |1-
+         PROCEDURE Port()
+         renvoyer m_nport
+        type : 1966080
+      -
+        code : |1-
+         PROCEDURE Port(local nPort est un entier)
+         
+         	m_nport = nPort
+        type : 2031616
+     template_refs : []
+   -
+     name : RépertoireJournal
+     identifier : 0x17c0433301e5878d
+     type_code : 103
+     p_codes :
+      -
+        code : |1-
+         PROCEDURE RépertoireJournal()
+         renvoyer m_sRepJournal
+        type : 1966080
+      -
+        code : |1-
+         PROCEDURE RépertoireJournal(local sRépertoire est une chaine)
+         
+         	// Si le répertoire est non vide
+         	SI sRépertoire <> "" ALORS
+         		
+         		// Conserve la valeur
+         		m_sRepJournal = sRépertoire
+         		
+         		// Crée le répertoire
+         		fRepCrée(m_sRepJournal)	
+         	FIN
+        type : 2031616
+     template_refs : []
+   -
+     name : JournalActif
+     identifier : 0x17c0433301e6878d
+     type_code : 103
+     p_codes :
+      -
+        code : |1-
+         PROCEDURE JournalActif()
+         renvoyer m_bJournal
+        type : 1966080
+      -
+        code : |1-
+         PROCEDURE JournalActif(local bJournal est un booléen)
+         
+         	m_bJournal = bJournal
+        type : 2031616
+     template_refs : []
+   -
+     name : EnExécution
+     identifier : 0x17c0433301e7878d
+     type_code : 103
+     p_codes :
+      -
+        code : |1-
+         PROCEDURE EnExécution()
+         renvoyer m_bEnExécution
+        type : 1966080
+      -
+        internal_properties : CAAAAAgAAABNrfT93FzKVunPjf+vjjY9viWl28oe43SzI18afJQ/aJc+2c8uaGFChiI/eMsn8Hupea8yAX7zx0+MMs2iPFWxkR6r3hDp5X28+roinitI9tlADZuPcHLEYSolCV3oppsoNF8zW2vcdEBJxDp8u96+QdQhqbDFI7b4KyF+aAsErd/Xty03YO/akGVszlNTpv7W6eMTbLKmJgrc9s6GFcOXO5SzYbEo
+        code : |1-
+         PROCEDURE EnExécution(v)
+         
+         	dbgAssertion(faux, "La propriété EnExécution est en lecture seule")
+        type : 2031616
+     template_refs : []
+  procedure_templates : []
+  property_templates : []
+ code_parameters :
+  internal_properties : CAAAAAgAAACVGQgYbalU7DKC3oH4ItDrjtcTHXXV/EuH8q0IbhyQlw==
+  original_name : Classe1
+resources :
+ string_res :
+  identifier : 0x10d9981806d12800
+  internal_properties : CAAAAAgAAACm76HWfKGWp33VjXInA4cRlqArlgTTA862QGt72W2ld5Y=
+custom_note :
+ internal_properties : CAAAAAgAAABtB9HWVzrXO2+4NDRVK0vmzaNKrCKqH1DBX30lMmGZ
